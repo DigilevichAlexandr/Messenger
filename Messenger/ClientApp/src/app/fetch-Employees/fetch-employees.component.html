@@ -1,0 +1,22 @@
+<h1 id="tableLabel">Employees</h1>
+
+<p>Here's list of all employees.</p>
+
+<p *ngIf="!employees"><em>Loading...</em></p>
+
+<table class='table table-striped' aria-labelledby="tableLabel" *ngIf="employees">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Position</th>
+      <th>Company</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let employee of employees">
+      <td>{{ employee.fullName.firstName }}</td>
+      <td>{{ employee.position }}</td>
+      <td>{{ employee.workingPlace.companyName }}</td>
+    </tr>
+  </tbody>
+</table>
