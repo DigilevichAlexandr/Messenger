@@ -79,9 +79,7 @@ namespace Messenger.Controllers
         [HttpPut]
         public async Task<IActionResult> Put(Employee employee)
         {
-            var dbEmploee = db.Employes.Find(employee.Id);
-            dbEmploee.FullName = employee.FullName;
-            db.Update(dbEmploee);
+            db.Update(employee);
             await db.SaveChangesAsync();
 
             return Ok();

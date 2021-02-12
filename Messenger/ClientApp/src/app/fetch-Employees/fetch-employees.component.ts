@@ -39,30 +39,31 @@ export class FetchEmployeesComponent {
 
   save() {
     this.http.post(this.baseUrl + 'employees', this.employee)
-      .subscribe(error => console.error(error));
-
-    this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-      this.employees = result;
-    }, error => console.error(error));
+      .subscribe(result => {
+        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
+          this.employees = result;
+        }, error => console.error(error));
+      }, error => console.error(error));
   }
 
   edit(employee: Employee) {
-    this.http.put(this.baseUrl + 'employees', { id: employee.id, employee: employee })
-      .subscribe(error => console.error(error));
-
-    this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-      this.employees = result;
-    }, error => console.error(error));
+    this.http.put(this.baseUrl + 'employees', employee)
+      .subscribe(result => {
+        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
+          this.employees = result;
+        }, error => console.error(error));
+      }, error => console.error(error));
   }
 
   delete(id: number) {
     let httpParams = new HttpParams().set('id', id.toString());
     let options = { params: httpParams };
-    this.http.delete(this.baseUrl + 'employees', options).subscribe(error => console.error(error));
-
-    this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-      this.employees = result;
-    }, error => console.error(error));
+    this.http.delete(this.baseUrl + 'employees', options)
+      .subscribe(result => {
+        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
+          this.employees = result;
+        }, error => console.error(error));
+      }, error => console.error(error));
   }
 }
 
