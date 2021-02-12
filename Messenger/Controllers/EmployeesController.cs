@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -15,43 +16,88 @@ namespace Messenger.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly ApplicationDbContext db;
-
+        /// <summary>
+        /// Employees Controller Constructor
+        /// </summary>
+        /// <param name="db"></param>
         public EmployeesController(ApplicationDbContext db)
         {
             this.db = db;
         }
 
+        /// <summary>
+        /// Action for getting the all Employees
+        /// </summary>
+        /// <returns>Employees</returns>
         [HttpGet]
-        public IAsyncEnumerable<Employee> Get()
+        public IAsyncEnumerable<Employee> GetAll()
         {
             return db.Employes
                 .Include(e => e.FullName)
                 .Include(e => e.WorkingPlace).AsAsyncEnumerable();
         }
 
-        // GET api/<EmployeesController>/5
+        /// <summary>
+        /// Get the exact Employee by Id
+        /// </summary>
+        /// <param name="id">Id</param>
+        /// <returns>Employee object</returns>
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<Employee> Get(int id)
         {
-            return "value";
+            return await db.Employes
+                .Include(e => e.FullName)
+                .Include(e => e.WorkingPlace)
+                .FirstAsync(e => e.Id == id);
         }
 
-        // POST api/<EmployeesController>
+        /// <summary>
+        /// Add a new Employee
+        /// </summary>
+        /// <param name="employee">Employee abject</param>
+        /// <returns>Ok response</returns>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post(Employee employee)
         {
+            try
+            {
+                await db.Employes.AddAsync(employee);
+                await db.SaveChangesAsync();
+
+                return Ok();
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
-        // PUT api/<EmployeesController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        /// <summary>
+        /// Edit an exact Employee
+        /// </summary>
+        /// <param name="value">Employee</param>
+        [HttpPut]
+        public async Task<IActionResult> Put(Employee employee)
         {
+            var dbEmploee = db.Employes.Find(employee.Id);
+            dbEmploee.FullName = employee.FullName;
+            db.Update(dbEmploee);
+            await db.SaveChangesAsync();
+
+            return Ok();
         }
 
-        // DELETE api/<EmployeesController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        /// <summary>
+        /// Delete Employee by id
+        /// </summary>
+        /// <param name="id">Id</param>
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
+            db.Employes.Remove(await db.Employes.FindAsync(id));
+            await db.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }

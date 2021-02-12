@@ -53,7 +53,6 @@ namespace Messenger
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
@@ -69,6 +68,7 @@ namespace Messenger
                 app.UseSpaStaticFiles();
             }
 
+            app.UseMiddleware<TokenMiddleware>();
             app.UseRouting();
 
             app.UseAuthentication();
