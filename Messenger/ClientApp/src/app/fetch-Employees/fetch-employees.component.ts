@@ -1,6 +1,7 @@
 import { Component, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { first, catchError } from 'rxjs/operators';
+import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 @Component({
   selector: 'app-fetch-employees',
@@ -8,7 +9,6 @@ import { first, catchError } from 'rxjs/operators';
 })
 export class FetchEmployeesComponent {
   public employees: Employee[];
-  //public employee: Employee;
   public employee: Employee =
     {
       id: 0,
@@ -23,35 +23,44 @@ export class FetchEmployeesComponent {
         companyName: ''
       }
     };
-  //public employee: string = 'test';
-
+  public pageOptions: PageOptions =
+    {
+      pageNumber: 1,
+      pageSize: 10
+    };
   public baseUrl: string;
-  public http: HttpClient
+  public http: HttpClient;
+  public Editor = ClassicEditor;
+
+  public model = {
+    editorData: '<p>Hello, world!</p>'
+  };
+
+  visibality = false;
+  id = -1;
+
+  messages: Message[];
+  public employeeToMessage: Employee;
+
+  data: string;
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
-    http.get<Employee[]>(baseUrl + 'employees').subscribe(result => {
-      this.employees = result;
-    }, error => console.error(error));
-
     this.http = http;
     this.baseUrl = baseUrl;
+    this.getAll(this.pageOptions);
   }
 
   save() {
     this.http.post(this.baseUrl + 'employees', this.employee)
       .subscribe(result => {
-        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-          this.employees = result;
-        }, error => console.error(error));
+        this.getAll(this.pageOptions);
       }, error => console.error(error));
   }
 
   edit(employee: Employee) {
     this.http.put(this.baseUrl + 'employees', employee)
       .subscribe(result => {
-        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-          this.employees = result;
-        }, error => console.error(error));
+        this.getAll(this.pageOptions);
       }, error => console.error(error));
   }
 
@@ -60,9 +69,39 @@ export class FetchEmployeesComponent {
     let options = { params: httpParams };
     this.http.delete(this.baseUrl + 'employees', options)
       .subscribe(result => {
-        this.http.get<Employee[]>(this.baseUrl + 'employees').subscribe(result => {
-          this.employees = result;
-        }, error => console.error(error));
+        this.getAll(this.pageOptions);
+      }, error => console.error(error));
+  }
+
+  getAll(pageOptions: PageOptions = this.pageOptions) {
+    let httpParams = new HttpParams().set('pageOptions', JSON.stringify(pageOptions));
+    let options = { params: httpParams };
+    this.http.get<Employee[]>(this.baseUrl + 'employees', options)
+      .subscribe(result => {
+        this.employees = result;
+      }, error => console.error(error));
+  }
+
+  sendMessage() {
+    this.http.post(this.baseUrl + 'messages', { id: this.id, message: this.model.editorData })
+      .subscribe(result => {
+        this.getAll(this.pageOptions);
+      }, error => console.error(error));
+  }
+
+  revealMessageEditor(employee: Employee) {
+    this.id = employee.id;
+    this.visibality = !this.visibality;
+    this.employeeToMessage = employee;
+  }
+
+  getMessages() {
+    let httpParams = new HttpParams().set('id', JSON.stringify(this.id));
+    let options = { params: httpParams };
+    this.http.get<Message[]>(this.baseUrl + 'messages', options)
+      .subscribe(result => {
+        this.messages = result;
+        this.data = result.map(m => m.text).join();
       }, error => console.error(error));
   }
 }
@@ -85,3 +124,16 @@ class WorkingPlace {
   address: string;
 }
 
+class PageOptions {
+  pageNumber: number;
+  pageSize: number;
+  // public IDictionary<string, string> Filter { get; set; }
+  // public SortOrder SortOrder { get; set; }
+}
+
+class Message {
+  id: number;
+  text: FullName;
+  employee: Employee;
+  rowVersion: [];
+}

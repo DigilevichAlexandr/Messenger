@@ -3,7 +3,10 @@ using Messenger.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -16,13 +19,17 @@ namespace Messenger.Controllers
     public class EmployeesController : ControllerBase
     {
         private readonly ApplicationDbContext db;
+        private readonly ILogger<EmployeesController> _logger;
         /// <summary>
         /// Employees Controller Constructor
         /// </summary>
         /// <param name="db"></param>
-        public EmployeesController(ApplicationDbContext db)
+        public EmployeesController(ApplicationDbContext db,
+            ILogger<EmployeesController> logger
+            )
         {
             this.db = db;
+            _logger = logger;
         }
 
         /// <summary>
@@ -30,11 +37,26 @@ namespace Messenger.Controllers
         /// </summary>
         /// <returns>Employees</returns>
         [HttpGet]
-        public IAsyncEnumerable<Employee> GetAll()
+        public IAsyncEnumerable<Employee> GetAll([FromQuery] string pageOptions)
         {
-            return db.Employes
-                .Include(e => e.FullName)
-                .Include(e => e.WorkingPlace).AsAsyncEnumerable();
+            try
+            {
+                var pageOptionsInput = JsonSerializer.Deserialize<PageOptions>(
+                    pageOptions, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                return db.Employes
+                    .GetEmployeesWithPageOptions(pageOptionsInput)
+                    .AsAsyncEnumerable();
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Error on retrieving  employees");
+
+                return AsyncEnumerable.Empty<Employee>();
+            }
         }
 
         /// <summary>
@@ -68,6 +90,8 @@ namespace Messenger.Controllers
             }
             catch (System.Exception ex)
             {
+                _logger.LogError(ex, "Error on creation employee");
+
                 return BadRequest();
             }
         }

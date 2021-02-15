@@ -13,6 +13,8 @@ import { FetchEmployeesComponent } from './fetch-employees/fetch-employees.compo
 import { ApiAuthorizationModule } from 'src/api-authorization/api-authorization.module';
 import { AuthorizeGuard } from 'src/api-authorization/authorize.guard';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
+import { SendMessageComponent } from './send-message/send-message/send-message.component';
+import { CKEditorModule } from '@ckeditor/ckeditor5-angular';
 
 @NgModule({
   declarations: [
@@ -21,18 +23,21 @@ import { AuthorizeInterceptor } from 'src/api-authorization/authorize.intercepto
     HomeComponent,
     CounterComponent,
     FetchDataComponent,
-    FetchEmployeesComponent
+    FetchEmployeesComponent,
+    SendMessageComponent
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
     HttpClientModule,
     FormsModule,
     ApiAuthorizationModule,
+    CKEditorModule,
     RouterModule.forRoot([
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'counter', component: CounterComponent },
       { path: 'fetch-data', component: FetchDataComponent, canActivate: [AuthorizeGuard] },
       { path: 'fetch-employees', component: FetchEmployeesComponent, canActivate: [AuthorizeGuard] },
+      { path: 'send-message', component: SendMessageComponent, canActivate: [AuthorizeGuard] },
     ])
   ],
   providers: [

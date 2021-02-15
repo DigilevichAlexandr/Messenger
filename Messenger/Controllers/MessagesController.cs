@@ -1,10 +1,15 @@
 ﻿using Messenger.Data;
+using Messenger.Data.Entities;
+using Messenger.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Messenger.Controllers
@@ -15,16 +20,30 @@ namespace Messenger.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly ApplicationDbContext db;
+        private readonly ILogger<MessagesController> logger;
 
-        public MessagesController(ApplicationDbContext db)
+        public MessagesController(ApplicationDbContext db,
+            ILogger<MessagesController> logger)
         {
             this.db = db;
+            this.logger = logger;
         }
 
-        // GET: MessagesController
-        public ActionResult Index()
+        [HttpGet]
+        public IAsyncEnumerable<Message> GetMessages(int id)
         {
-            return Ok();
+            try
+            {
+                return db.Messages.AsQueryable()
+                   .Where(m => m.Employee.Id == id)
+                   .AsAsyncEnumerable();
+            }
+            catch (System.Exception ex)
+            {
+                logger.LogError(ex, "Error on retrieving  employees");
+
+                return AsyncEnumerable.Empty<Message>();
+            }
         }
 
         // GET: MessagesController/Details/5
@@ -33,67 +52,23 @@ namespace Messenger.Controllers
             return Ok();
         }
 
-        // GET: MessagesController/Create
-        public ActionResult Create()
-        {
-            return Ok();
-        }
-
-        // POST: MessagesController/Create
+        /// <summary>
+        /// Send message to employee
+        /// </summary>
+        /// <param name="id">Employee id</param>
+        /// <param name="message">TEst message</param>
+        /// <returns>Status</returns>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Send(MessageDTO messageDTO)
         {
-            try
+            await db.Messages.AddAsync(new Message
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return Ok();
-            }
-        }
+                Employee = db.Employes.Find(messageDTO.Id),
+                Text = messageDTO.Message
+            });
+            await db.SaveChangesAsync();
 
-        // GET: MessagesController/Edit/5
-        public ActionResult Edit(int id)
-        {
             return Ok();
-        }
-
-        // POST: MessagesController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return Ok();
-            }
-        }
-
-        // GET: MessagesController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return Ok();
-        }
-
-        // POST: MessagesController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return Ok();
-            }
         }
     }
 }

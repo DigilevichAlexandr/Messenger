@@ -4,15 +4,42 @@
 
 <p *ngIf="!employees"><em>Loading...</em></p>
 
-<div class="form-group w-25">
-  <label>First Name</label>
-  <input type="text" [(ngModel)]="employee.fullName.firstName" class="form-control" (keyup.enter)="save()" />
-  <label>Last Name</label>
-  <input type="text" [(ngModel)]="employee.fullName.lastName" class="form-control" (keyup.enter)="save()" />
-  <label>Middle Name</label>
-  <input type="text" [(ngModel)]="employee.fullName.middleName" class="form-control" (keyup.enter)="save()" />
-</div>
-<input type="button" value="Add" class="btn btn-primary mb-4" (click)="save()" />
+<tr>
+  <td>
+    <div class="form-group w-25">
+      <label>First Name</label>
+      <input type="text" [(ngModel)]="employee.fullName.firstName" class="form-control" (keyup.enter)="save()" />
+      <label>Last Name</label>
+      <input type="text" [(ngModel)]="employee.fullName.lastName" class="form-control" (keyup.enter)="save()" />
+      <label>Middle Name</label>
+      <input type="text" [(ngModel)]="employee.fullName.middleName" class="form-control" (keyup.enter)="save()" />
+    </div>
+    <input type="button" value="Add" class="btn btn-primary mb-4" (click)="save()" />
+  </td>
+  <td *ngIf="visibality">
+<tr>
+  <td>
+    <ckeditor [editor]="Editor" [(ngModel)]="model.editorData"></ckeditor>
+    <input type="button" value="Send Message To {{employeeToMessage.fullName.firstName}}"
+      class="btn btn-primary mb-4 mt-1" (click)="sendMessage()" />
+    <input type="button" value="Get {{employeeToMessage.fullName.firstName}}'s' Messages"
+      class="btn btn-primary mb-4 mt-1 ml-1" (click)="getMessages()" />
+  </td>
+</tr>
+<tr>
+  <td>
+    <ckeditor [editor]="Editor" [(ngModel)]="data"></ckeditor>
+  </td>
+</tr>
+<!-- <div>{{messages.map(m.text).join()}}</div> -->
+<!-- <md-input-container fxFlex="18" fxFlexOffset="1">
+      <textarea [(ngModel)]="messages.map(m.text).join()" name="Comments" mdInput placeholder="Comments" rows="3"></textarea>
+        <md-error>This field is required</md-error>
+    </md-input-container> -->
+
+</td>
+</tr>
+
 
 <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="employees">
   <thead>
@@ -20,6 +47,14 @@
       <th>Name</th>
       <th>Position</th>
       <th>Company</th>
+      <th>
+    <tr><label class="label">Page number</label></tr><input type="number" [(ngModel)]="pageOptions.pageNumber"
+      placeholder="page number" /></th>
+    <th>
+      <tr><label class="label">Page size</label></tr><input type="number" [(ngModel)]="pageOptions.pageSize"
+        placeholder="page size" />
+    </th>
+    <th><input type="button" class="btn btn-primary" (click)="getAll()" value="refresh" /></th>
     </tr>
   </thead>
   <tbody>
@@ -27,11 +62,17 @@
       <td>{{ employee.fullName.firstName }}</td>
       <td>{{ employee.position }}</td>
       <td>{{ employee.workingPlace.companyName }}</td>
-      <td><input type="text" placeholder="First Name" [(ngModel)]="employee.fullName.firstName" class="form-control" (keyup.enter)="edit(employee)" /></td>
-      <td><input type="text" placeholder="Last Name" [(ngModel)]="employee.fullName.lastName" class="form-control" (keyup.enter)="edit(employee)" /></td>
-      <td><input type="text" placeholder="Middle Name" [(ngModel)]="employee.fullName.middleName" class="form-control" (keyup.enter)="edit(employee)" /></td>
-      <td><input type="button" value="edit" class="form-control" (keyup.enter)="edit(employee)" (click)="edit(employee)"/></td>
-      <td><input type="button" value="delete" class="form-control btn-danger" (keyup.enter)="delete(employee.id)" (click)="delete(employee.id)"/></td>
+      <td><input type="text" placeholder="First Name" [(ngModel)]="employee.fullName.firstName" class="form-control"
+          (keyup.enter)="edit(employee)" /></td>
+      <td><input type="text" placeholder="Last Name" [(ngModel)]="employee.fullName.lastName" class="form-control"
+          (keyup.enter)="edit(employee)" /></td>
+      <td><input type="text" placeholder="Middle Name" [(ngModel)]="employee.fullName.middleName" class="form-control"
+          (keyup.enter)="edit(employee)" /></td>
+      <td><input type="button" value="edit" class="form-control" (keyup.enter)="edit(employee)"
+          (click)="edit(employee)" /></td>
+      <td><input type="button" value="delete" class="form-control btn-danger" (keyup.enter)="delete()"
+          (click)="delete(employee.id)" /></td>
+      <td><input class="btn" (click)="revealMessageEditor(employee)" value="Send Message" /></td>
     </tr>
   </tbody>
 </table>
