@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      CI: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      # Angular CLI 8 uses webpack 4 which fails on Node/OpenSSL 3+
+      NODE_OPTIONS: --openssl-legacy-provider
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install libssl1.1 (required for .NET 5 on Ubuntu 22+)
+        run: |
+          set -euo pipefail
+          curl -fsSLO "https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
+          sudo dpkg -i "libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "5.0.408"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "Messenger/ClientApp/package-lock.json"
+
+      - name: Build (Release)
+        run: dotnet build "Messenger.sln" -c Release
+
+      - name: Publish (Release)
+        run: dotnet publish "Messenger/Messenger.csproj" -c Release -o "artifacts/publish"
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: messenger-publish
+          path: artifacts/publish

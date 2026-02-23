@@ -1,0 +1,62 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    env:
+      CI: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      NODE_OPTIONS: --openssl-legacy-provider
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install libssl1.1 (required for .NET 5 on Ubuntu 22+)
+        run: |
+          set -euo pipefail
+          curl -fsSLO "https://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
+          sudo dpkg -i "libssl1.1_1.1.1f-1ubuntu2.24_amd64.deb"
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "5.0.408"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "Messenger/ClientApp/package-lock.json"
+
+      - name: Publish (Release)
+        run: dotnet publish "Messenger/Messenger.csproj" -c Release -o "publish"
+
+      - name: Create zip
+        run: |
+          set -euo pipefail
+          cd publish
+          zip -r "../Messenger-publish.zip" .
+
+      - name: Upload zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: messenger-publish-zip
+          path: Messenger-publish.zip
+
+      - name: Create GitHub Release (tag push)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Messenger-publish.zip
