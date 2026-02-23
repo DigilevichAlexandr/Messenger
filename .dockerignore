@@ -1,0 +1,14 @@
+.git
+.github
+.idea
+.vs
+
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/dist-server
+
+**/*.user
+**/*.suo
+**/*.pdb
