@@ -1,6 +1,5 @@
 import { Component, Inject } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { first, catchError } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import * as ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 @Component({
@@ -133,7 +132,7 @@ class PageOptions {
 
 class Message {
   id: number;
-  text: FullName;
+  text: string;
   employee: Employee;
-  rowVersion: [];
+  rowVersion: string;
 }
